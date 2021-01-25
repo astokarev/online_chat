@@ -1,7 +1,6 @@
 package client;
 
 import server.Message;
-import server.MyServer;
 
 import javax.swing.*;
 import java.awt.*;
@@ -16,21 +15,19 @@ public class MyClient extends JFrame {
         super("Чат");
         serverService = new SocketServerService();
         serverService.openConnection();
-
-
-
+        JPanel jPanel = new JPanel();
+        setLayout(new BoxLayout(getContentPane(), BoxLayout.Y_AXIS));
+        jPanel.setLayout(new BoxLayout(jPanel, BoxLayout.X_AXIS));
+        jPanel.setSize(300, 50);
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-        setLayout(new FlowLayout());
-        setBounds(400, 400, 500, 500);
+        setBounds(400, 400, 500, 300);
 
-        TextArea mainChat = new TextArea();
-        mainChat.setSize( 100, 300);
+        JTextArea mainChat = new JTextArea();
+        mainChat.setSize(400, 250);
 
-        TextArea myMessage = new TextArea();
-        myMessage.setSize(100, 300);
+        JTextField myMessage = new JTextField();
 
-        Button send = new Button("Send");
-        send.setSize(50,200);
+        JButton send = new JButton("Send");
         send.addActionListener(actionEvent -> sendMessage(myMessage));
 
         myMessage.addKeyListener(new KeyAdapter() {
@@ -48,20 +45,20 @@ public class MyClient extends JFrame {
             }
         }).start();
 
-
         add(mainChat);
-        add(send);
-        add(myMessage);
+        jPanel.add(send);
+        jPanel.add(myMessage);
+        add(jPanel);
     }
 
-    private void sendMessage(TextArea myMessage) {
+    private void sendMessage(JTextField myMessage) {
         serverService.sendMessage(myMessage.getText());
         myMessage.setText("");
     }
 
-    private void printToUI(TextArea mainChat, Message message) {
+    private void printToUI(JTextArea mainChat, Message message) {
         mainChat.append("\n");
-        mainChat.append(message.getNick()+" написал: "+message.getMessage());
+        mainChat.append(message.getNick() + " написал: " + message.getMessage());
     }
 
 
