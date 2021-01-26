@@ -32,6 +32,33 @@ public class MyServer {
         }
     }
 
+    public synchronized void broadcastClientsList() {
+        StringBuilder sb = new StringBuilder("/clients ");
+        for (ClientHandler client : clients) {
+            sb.append(client.getNick()).append(" ");
+        }
+        Message message = new Message();
+        message.setMessage(sb.toString());
+        broadcastMessage(message);
+    }
+
+    public synchronized void sendMsgToClient(ClientHandler from, String nickTo, String msg) {
+        for (ClientHandler client : clients) {
+            if (client.getNick().equals(nickTo)) {
+                System.out.printf("Отправляем личное сообщение от %s, кому %s", from.getNick(), nickTo);
+                Message message = new Message();
+                message.setNick(from.getNick());
+                message.setMessage(msg);
+                client.sendMessage(message);
+                return;
+            }
+        }
+        System.out.printf("Клиент с ником %s не подюклчен к чату", nickTo);
+        Message message = new Message();
+        message.setMessage("Клиент с этим ником не подключен к чату");
+        from.sendMessage(message);
+    }
+
     public synchronized void broadcastMessage(Message message) {
         for (ClientHandler client : clients) {
             client.sendMessage(message);
@@ -53,9 +80,11 @@ public class MyServer {
 
     public synchronized void subscribe(ClientHandler clientHandler) {
         clients.add(clientHandler);
+        broadcastClientsList();
     }
 
     public synchronized void unsubscribe(ClientHandler clientHandler) {
         clients.remove(clientHandler);
+        broadcastClientsList();
     }
 }

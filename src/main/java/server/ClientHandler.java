@@ -57,6 +57,8 @@ public class ClientHandler {
                 String nick = myServer.getAuthService().getNickByLoginAndPass(message.getLogin(), message.getPassword());
                 if (nick != null && !myServer.isNickBusy(nick)) {
                     message.setAuthenticated(true);
+                    message.setNick(nick);
+                    this.nick = nick;
                     dataOutputStream.writeUTF(new Gson().toJson(message));
                     Message broadcastMsg = new Message();
                     broadcastMsg.setMessage(nick + " вошел в чат");
@@ -65,8 +67,7 @@ public class ClientHandler {
                     this.nick = nick;
                     return;
                 }
-            } catch (IOException e) {
-                e.printStackTrace();
+            } catch (IOException ignored) {
             }
         }
     }
@@ -76,10 +77,28 @@ public class ClientHandler {
             Message message = new Gson().fromJson(dataInputStream.readUTF(), Message.class);
             message.setNick(nick);
             System.out.println(message);
-            if ("/end".equals(message.getMessage())) {
-                return;
+            if (!message.getMessage().startsWith("/")) {
+                myServer.broadcastMessage(message);
+                continue;
             }
-            myServer.broadcastMessage(message);
+            // /<command> <message>
+            String[] tokens = message.getMessage().split("\\s");
+            switch (tokens[0]) {
+                case "/end":{
+                    return;
+                }
+                case "/w":{// /w <nick> <message>
+                    if (tokens.length < 3) {
+                        Message msg = new Message();
+                        msg.setMessage("Не хватает параметров, необходимо отправить команду следующего вида: /w <ник> <сообщение>");
+                        this.sendMessage(msg);
+                    }
+                    String nick = tokens[1];
+                    String msg = tokens[2];
+                    myServer.sendMsgToClient(this, nick, msg);
+                    break;
+                }
+            }
         }
     }
 
